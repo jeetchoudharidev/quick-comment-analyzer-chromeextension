@@ -1,0 +1,80 @@
+
+
+
+
+# Ignore virtual environments
+.venv/
+venv/
+
+# Ignore Python cache and logs
+__pycache__/
+*.pyc
+server.log
+
+# Ignore Mac system files (just in case)
+.DS_Store
+
+
+
+
+-----------------------------------------------------------------------
+
+
+
+# Here is the exact, step-by-step daily routine to start up your project whenever you sit down at your computer.
+
+# Assuming all your files (`server.py`, `manifest.json`, `background.js`, and `sentiment_model.pkl`) are together in your `D:\proj\cleanerproj\Chrome-Extension` folder, follow these steps:
+
+# 1. **Open Your Folder and Terminal:** In VS Code.
+# 1. Open VS Code.
+# 2. Go to **File > Open Folder** and select your `Chrome-Extension` folder.
+# 3. Open a new terminal inside VS Code (`Ctrl + ~` or **Terminal > New Terminal**).
+
+
+# 2. **Activate Your Virtual Environment:** Crucial for the AI libraries to work.
+# Since you installed `scikit-learn` inside a virtual environment, you must activate it before running the server. Run this in your PowerShell terminal:
+
+# ```powershell
+# .\.venv\Scripts\Activate
+
+# ```
+
+# *(You will know it worked when you see `(.venv)` appear at the start of your terminal line).*
+
+
+# 3. **Start the Python Server:** Visible vs. Silent.
+# You have two choices on how to run your backend:
+
+# **Option A: Visible Mode (Recommended for testing)**
+# Run this command if you want to see the server logs and confirm it's working:
+
+# ```powershell
+# python server.py
+
+# ```
+
+# *(Leave this terminal window open while you use the extension).*
+
+# **Option B: Silent Mode (Like a real background app)**
+# Run this if you want it to run invisibly so you can close VS Code:
+
+# ```powershell
+# pythonw server.py
+
+# ```
+
+
+# 4. **Enable the Chrome Extension:** chrome://extensions/.
+# 1. Open Google Chrome and go to `chrome://extensions/`.
+# 2. If it's already loaded, just click the 🔄 **Refresh** icon on your "Quick Comment Analyzer" card.
+# 3. If it's not loaded, make sure **Developer mode** is ON, click **Load unpacked**, and select your `Chrome-Extension` folder.
+
+
+# 5. **Test It:** Highlight, Right-click, Analyze.
+# Go to a regular website (like a YouTube video or an Amazon product page), highlight some text, right-click, and click **Get Sentiment Rating**!
+
+
+# ### 🛑 How to Turn It Off Later
+
+# * **If you used Option A (`python`):** Just click on your VS Code terminal and press `Ctrl + C` to shut down the server.
+# * **If you used Option B (`pythonw`):** Open Windows Task Manager (`Ctrl + Shift + Esc`), go to the **Details** tab, find `pythonw.exe`, right-click it, and select **End task**.

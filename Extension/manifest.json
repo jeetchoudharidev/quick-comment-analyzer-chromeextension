@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Quick Comment Analyzer",
+  "version": "1.0",
+  "description": "Right-click any comment to convert it to a star rating.",
+  "permissions": ["contextMenus", "scripting", "activeTab"],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
