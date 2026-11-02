@@ -1,9 +1,16 @@
 {
   "manifest_version": 3,
   "name": "Quick Comment Analyzer",
-  "version": "1.0",
-  "description": "Right-click any comment to convert it to a star rating.",
-  "permissions": ["contextMenus", "scripting", "activeTab"],
+  "version": "1.1.0",
+  "description": "Right-click selected text to analyze its sentiment and get a star rating.",
+  "permissions": [
+    "contextMenus",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://YOUR-RENDER-SERVICE.onrender.com/*"
+  ],
   "background": {
     "service_worker": "background.js"
   }
