@@ -1,59 +1,93 @@
 import os
-import sys
 import logging
 import joblib
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-# Prevent windowless execution crashes
-if sys.stdout is None: sys.stdout = open(os.devnull, "w")
-if sys.stderr is None: sys.stderr = open(os.devnull, "w")
-
-logging.basicConfig(level=logging.INFO, format="%(message)s")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 app = Flask(__name__)
 CORS(app)
 
-# 1. Load your newly trained AI model!
+# Load the trained model from the same directory as this file.
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "sentiment_model.pkl")
+
 try:
-    model = joblib.load('sentiment_model.pkl')
-    logging.info("Custom ML Model loaded successfully.")
-except Exception as e:
-    logging.error(f"Could not load model: {e}")
-    sys.exit(1)
+    model = joblib.load(MODEL_PATH)
+    logging.info("Custom ML model loaded successfully.")
+
+    # Identify the positive class instead of assuming predict_proba index 1.
+    classes = getattr(model, "classes_", None)
+    if classes is None or len(classes) != 2:
+        raise ValueError("Expected a binary classifier with exactly two classes.")
+
+    positive_candidates = [i for i, label in enumerate(classes) if str(label).lower() in ("1", "positive", "pos")]
+    if positive_candidates:
+        POSITIVE_CLASS_INDEX = positive_candidates[0]
+    else:
+        # The training script uses the IMDB dataset labels (0 = negative, 1 = positive).
+        POSITIVE_CLASS_INDEX = 1
+
+except Exception:
+    logging.exception("Could not load or validate sentiment_model.pkl")
+    raise
+
 
 def get_rating_from_probability(pos_prob: float):
-    """Converts the AI's confidence percentage into a 1-5 star scale."""
-    if pos_prob >= 0.80: return "Excellent 😊", 5
-    elif pos_prob >= 0.60: return "Good 🙂", 4
-    elif pos_prob >= 0.40: return "Average 😐", 3
-    elif pos_prob >= 0.20: return "Bad 😞", 2
-    else: return "Very Bad 😡", 1
+    """Convert the predicted positive-class probability into a 1–5 star rating."""
+    if pos_prob >= 0.80:
+        return "Excellent 😊", 5
+    elif pos_prob >= 0.60:
+        return "Good 🙂", 4
+    elif pos_prob >= 0.40:
+        return "Average 😐", 3
+    elif pos_prob >= 0.20:
+        return "Bad 😞", 2
+    return "Very Bad 😡", 1
 
-@app.route("/api/v1/analyze", methods=["POST"])
+
+@app.get("/")
+def index():
+    return jsonify({
+        "service": "Quick Comment Analyzer API",
+        "status": "online"
+    })
+
+
+@app.get("/health")
+def health():
+    return jsonify({"status": "ok", "model_loaded": model is not None}), 200
+
+
+@app.post("/api/v1/analyze")
 def analyze():
-    data = request.get_json(silent=True)
-    review_text = str(data.get("review", "")).strip()
-    
+    data = request.get_json(silent=True) or {}
+    review_text = str(data.get("review") or "").strip()
+
     if not review_text:
         return jsonify({"error": "Empty review."}), 400
 
+    if len(review_text) > 10000:
+        return jsonify({"error": "Review is too long. Maximum length is 10000 characters."}), 413
+
     try:
-        # predict_proba returns [[Negative_Prob, Positive_Prob]]
-        # We want the Positive probability (index 1)
         probabilities = model.predict_proba([review_text])[0]
-        positive_probability = probabilities[1]
-        
+        positive_probability = float(probabilities[POSITIVE_CLASS_INDEX])
+
         label, stars = get_rating_from_probability(positive_probability)
-        
+
         return jsonify({
             "label": label,
             "stars": "⭐" * stars,
-            "confidence": f"{positive_probability * 100:.1f}%" # New feature!
+            "confidence": f"{positive_probability * 100:.1f}%"
         }), 200
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        logging.exception("Sentiment prediction failed")
+        return jsonify({"error": "Sentiment analysis failed."}), 500
+
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
