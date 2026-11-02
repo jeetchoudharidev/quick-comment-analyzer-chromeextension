@@ -1,5 +1,5 @@
 // Replace this placeholder with the HTTPS URL assigned to your deployed Flask API.
-const API_BASE_URL = "https://YOUR-RENDER-SERVICE.onrender.com";
+const API_BASE_URL = "https://quick-comment-analyzer-chromeextension.onrender.com";
 const ANALYZE_ENDPOINT = `${API_BASE_URL}/api/v1/analyze`;
 
 chrome.runtime.onInstalled.addListener(() => {
